@@ -9,9 +9,11 @@ use App\Entity\User;
 use App\Form\UserType;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class SecurityController extends AbstractController
 {
+    private $passwordEncoder;
     /**
      * @Route("/login", name="app_login")
      */
@@ -32,7 +34,7 @@ class SecurityController extends AbstractController
     /**
      * @Route("/registroUsuario", name="registroUsuario")
      */
-    public function registroUsuario(Request $request)
+    public function registroUsuario(Request $request,UserPasswordEncoderInterface $passwordEncoder)
     {
         $user = new User();
         $formulario = $this->createForm(UserType::class,$user);
@@ -41,7 +43,7 @@ class SecurityController extends AbstractController
         if ($formulario->isSubmitted() && $formulario->isValid()){
             
             $user->setRoles($user->getRoles());
-            
+            $user->setPassword($passwordEncoder->encodePassword($user,$formulario['password']->getData()));
             $entManager = $this->getDoctrine()->getManager();
             $entManager->persist($user);
             $entManager->flush();
